@@ -19,6 +19,8 @@ TcpServer::TcpServer(const std::string& address,
   asio::ip::tcp::endpoint endpoint = 
     *resolver.resolve(address, port).begin();
 
+  std::cout << "Bounding address: " << endpoint.address().to_string() << std::endl;
+
   acceptor_.open(endpoint.protocol());
   acceptor_.set_option(asio::ip::tcp::acceptor::reuse_address(true));
 
@@ -62,6 +64,8 @@ void TcpServer::handle_accept(const std::error_code& e)
 {
   assert (incoming_conn_);
   if (!e) {
+    std::cout << "Accepted connection from: " << 
+      incoming_conn_->socket().local_endpoint().address().to_string() << std::endl;
     incoming_conn_->start_streaming();
   }
 

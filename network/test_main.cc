@@ -4,6 +4,6 @@
 using namespace mqtt;
 
 int main() {
-  TcpServer("localhost", "8888", 1).run();
+  TcpServer("0.0.0.0", "8888", 1).run();
   return 0;
 }
