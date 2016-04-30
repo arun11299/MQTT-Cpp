@@ -1,18 +1,20 @@
 #include <iostream>
 #include <string>
 #include "server.hpp"
+#include "connection.hpp"
 
 using namespace mqtt;
 
 TcpServer::TcpServer(const std::string& address,
-		       const std::string& port,
-		       size_t thread_pool_size):
-  io_pool_(thread_pool_size)
+		     const std::string& port,
+		     size_t thread_pool_size):
+  io_pool_(thread_pool_size),
+  acceptor_(io_pool_.get_io_context())
 {
   asio::ip::tcp::resolver resolver(
-      acceptor_.get_executer().context());
+      acceptor_.get_io_service());
 
-  asio::ip::tcp::endpoint = 
+  asio::ip::tcp::endpoint endpoint = 
     *resolver.resolve(address, port).begin();
 
   acceptor_.open(endpoint.protocol());
@@ -35,18 +37,18 @@ void TcpServer::stop()
 
 void TcpServer::start_accept()
 {
-  new_conn_ = connection_mgr_->create_connection(
-      io_pool_.get_io_context(), connection_mgr_);
+  incoming_conn_ = connection_mgr_.create_connection(
+      io_pool_.get_io_context());
 
-  acceptor_.async_accept(new_conn_->socket(),
-      std::bind(&TcpServer::handle_accept, this, asio::placeholders::error));
+  acceptor_.async_accept(incoming_conn_->socket(),
+      std::bind(&TcpServer::handle_accept, this, std::placeholders::_1));
 }
 
-void TcpServer::handle_accept(asio::error_code& e)
+void TcpServer::handle_accept(const std::error_code& e)
 {
-  assert (new_conn_);
+  assert (incoming_conn_);
   if (!e) {
-    new_conn_->start_streaming();
+    incoming_conn_->start_streaming();
   }
 
   start_accept();

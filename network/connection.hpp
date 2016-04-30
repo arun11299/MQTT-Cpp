@@ -16,6 +16,8 @@ public:
 
   asio::ip::tcp::socket& socket() noexcept;
 
+  void start_streaming();
+
   void close();
 private:
   void handle_read();
@@ -24,7 +26,7 @@ private:
 private:
   asio::ip::tcp::socket socket_;
 
-  ConnectioManager& connection_mgr_;
+  ConnectionManager& connection_mgr_;
 };
 
 };

@@ -1,0 +1,1 @@
+g++ -std=c++11 -DASIO_STANDALONE -stdlib=libc++ -o test_main test_main.cc server.cc connection_manager.cc connection.cc io_context_pool.cc -I /Users/amuralid/asio-master/asio/include/

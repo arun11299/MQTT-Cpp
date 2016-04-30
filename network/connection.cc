@@ -15,6 +15,10 @@ asio::ip::tcp::socket& Connection::socket() noexcept
   return socket_;
 }
 
+void Connection::start_streaming()
+{
+}
+
 void Connection::close()
 {
   socket_.cancel();

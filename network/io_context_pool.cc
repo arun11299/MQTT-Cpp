@@ -1,10 +1,11 @@
-#include "IOContextPool.hpp"
+#include "io_context_pool.hpp"
 
 using namespace mqtt;
 
 IOContextPool::IOContextPool(size_t thread_pool_size):
   io_contexts_(thread_pool_size),
-  work_(thread_pool_size)
+  work_(thread_pool_size),
+  next_io_ctx_(0)
 {
   assert (thread_pool_size != 0);
 
@@ -22,8 +23,11 @@ void IOContextPool::run()
   thread_pool_.reserve(io_contexts_.size());
 
   for (size_t i = 0; i < io_contexts_.size(); i++) {
-    threads.push_back(std::thread(
-    	  &asio::io_context::run, io_contexts_[i]));
+    auto& io_srv = io_contexts_[i];
+    thread_pool_.push_back(
+    	std::thread([&io_srv]() {
+	   io_srv->run();
+	}));
   }
 
   for (auto& thr : thread_pool_) thr.join();

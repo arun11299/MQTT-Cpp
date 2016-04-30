@@ -6,6 +6,7 @@
 #include <thread>
 #include <vector>
 #include <memory>
+#include "asio.hpp"
 
 namespace mqtt {
 
@@ -28,7 +29,7 @@ private:
   std::vector<work_ptr> work_;
 
   std::vector<std::thread> thread_pool_;
-  std::atomic<size_t> next_io_ctx_ = 0;
+  std::atomic<size_t> next_io_ctx_;
 };
 
 };

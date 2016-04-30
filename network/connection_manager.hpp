@@ -4,9 +4,10 @@
 #include <memory>
 #include <set>
 #include "asio.hpp"
-#include "connection.hpp"
 
 namespace mqtt {
+
+class Connection;
 
 class ConnectionManager
 {

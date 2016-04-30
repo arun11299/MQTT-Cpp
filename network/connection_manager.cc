@@ -8,7 +8,8 @@ ConnectionManager::ConnectionManager()
 {
 }
 
-Connection* ConnectionManager::create_connection(asio::io_context& io_ctxt)
+Connection* ConnectionManager::create_connection(
+    asio::io_context& io_context)
 {
   auto connection(std::make_shared<Connection>(io_context, *this));
   auto* raw_conn = connection.get();
@@ -25,5 +26,5 @@ void ConnectionManager::remove_connection(Connection* connection)
 	return connection == e.get();
       });
   assert (it != connections_.end());
-  connections_.erase(connection);
+  connections_.erase(it);
 }

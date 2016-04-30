@@ -10,17 +10,22 @@ namespace mqtt {
 class TcpServer
 {
 public:
-  TcpServer();
+  TcpServer(const std::string& address,
+	    const std::string& port,
+	    size_t thread_pool_size);
   void run();
   void stop();
 protected:
   void start_accept();
 
 private:
+  void handle_accept(const std::error_code& ec);
+
+private:
   IOContextPool io_pool_;
   asio::ip::tcp::acceptor acceptor_;
   Connection* incoming_conn_ = nullptr;
-  ConnectionMgr connection_mgr_;
+  ConnectionManager connection_mgr_;
 };
 
 };
