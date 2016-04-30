@@ -3,11 +3,12 @@
 using namespace mqtt;
 
 IOContextPool::IOContextPool(size_t thread_pool_size):
-  io_contexts_(thread_pool_size),
-  work_(thread_pool_size),
   next_io_ctx_(0)
 {
   assert (thread_pool_size != 0);
+
+  io_contexts_.reserve(thread_pool_size);
+  work_.reserve(thread_pool_size);
 
   for (size_t i = 0; i < thread_pool_size; i++) {
     io_context_ptr io_context(new asio::io_context);

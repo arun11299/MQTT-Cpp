@@ -11,6 +11,8 @@ TcpServer::TcpServer(const std::string& address,
   io_pool_(thread_pool_size),
   acceptor_(io_pool_.get_io_context())
 {
+  std::error_code ec;
+
   asio::ip::tcp::resolver resolver(
       acceptor_.get_io_service());
 
@@ -19,8 +21,20 @@ TcpServer::TcpServer(const std::string& address,
 
   acceptor_.open(endpoint.protocol());
   acceptor_.set_option(asio::ip::tcp::acceptor::reuse_address(true));
-  acceptor_.bind(endpoint);
-  acceptor_.listen();
+
+  acceptor_.bind(endpoint, ec);
+  if (ec) {
+    std::cerr << ec.message() << std::endl;
+    ec.clear();
+    return;
+  }
+
+  acceptor_.listen(asio::socket_base::max_connections, ec);
+  if (ec) {
+    std::cerr << ec.message() << std::endl;
+    ec.clear();
+    return;
+  }
 
   start_accept();
 }
