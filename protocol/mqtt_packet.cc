@@ -1,4 +1,7 @@
 #include "mqtt_packet.hpp"
+#ifdef NDEBUG
+#include <iostream>
+#endif
 
 using namespace mqtt;
 
@@ -18,12 +21,12 @@ void MQTTHeaderHelper::retain_flag(bool value) noexcept
   else pkt_header_.header_[0] &= 0xFE;
 }
 
-MQTTQoS MQTTHeaderHelper::qos_value() const noexcept
+MQTTQoS MQTTHeaderHelper::qos_level() const noexcept
 {
   return static_cast<MQTTQoS>((pkt_header_.header_[0] >> 1) & 0x02);
 }
 
-void MQTTHeaderHelper::qos_value(MQTTQoS value) noexcept
+void MQTTHeaderHelper::qos_level(MQTTQoS value) noexcept
 {
   pkt_header_.header_[0] |= (value << 1);
 }
@@ -66,4 +69,37 @@ uint32_t MQTTHeaderHelper::message_length() const noexcept
 
 void MQTTHeaderHelper::message_length(uint32_t length) noexcept
 {
+  uint8_t* len_buf = &pkt_header_.header_[1];
+  while (length) {
+    uint8_t digit = length % 128;
+    length /= 128;
+    if (length) digit |= 0x80;
+    *len_buf = digit;
+    len_buf++;
+  }
 }
+
+#ifdef NDEBUG
+void MQTTHeaderHelper::print_header()
+{
+  uint8_t* buf = &pkt_header_.header_[0];
+
+  auto print_helper = [](uint8_t* buf) {
+    uint8_t mask = 0x80;
+    int shift = 7;
+    while (mask) {
+      uint8_t v = (*buf & mask) >> shift;
+      if (v) std::cout << "| 1 ";
+      else std::cout << "| 0 ";
+      shift--;
+      mask >>= 1;
+    }
+    std::cout << std::endl;
+  };
+  // print 1st byte of header
+  print_helper(buf);
+  buf++;
+  //print second byte of header
+  print_helper(buf);
+}
+#endif

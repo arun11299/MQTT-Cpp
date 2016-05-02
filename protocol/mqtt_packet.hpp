@@ -3,9 +3,12 @@
 
 #include <type_traits>
 #include <cstdint>
+#include <cassert>
+
+//TODO: Packed attribute
 
 static const int VARIABLE_HEADER_LIMIT_CASE  = 3;
-static const int MAXIMUM_PAYLOAD = 2097151;
+static const int MAXIMUM_PAYLOAD = 2097152;
 
 namespace mqtt
 {
@@ -43,17 +46,12 @@ struct MQTTPacketHeaderBase
   uint8_t header_[2];
 };
 
-struct MQTTVariableHeaderLen
-{
-  uint8_t variable_len_;
-};
-
 
 template <size_t size,
 	 typename = typename std::enable_if<size < VARIABLE_HEADER_LIMIT_CASE>::type>
 struct MQTTPacketHeader: MQTTPacketHeader<size - 1>
 {
-  MQTTVariableHeaderLen hlen;
+  uint8_t var_len_buf_;
 };
 
 template <>
@@ -61,18 +59,25 @@ struct MQTTPacketHeader<0>: MQTTPacketHeaderBase
 {
 };
 
-/*
-MQTTHeaderHelper create_raw_header(char* message_buffer, uint32_t message_len)
+
+enum MQTTHeaderClassType: uint8_t
 {
-  assert (message_buffer && message_len <= MAXIMUM_PAYLOAD);
+  REGULAR = 0, /* For payload size less than 128 bytes */
+  MEDIUM  = 1, /* For payload size greater than 127 bytes and less than 16384 bytes */
+  HIGH    = 2, /* for payload size greater than 16383 bytes and less than MAXIMUM_PAYLOAD */
+  INVALID,
+};
 
-  MQTTHeaderHelper helper(
-      *reinterpret_cast<MQTTPacketHeaderBase*>(message_buffer));
-  helper.message_length(message_len);
 
-  return helper;
+static MQTTHeaderClassType mqtt_header_class_type(uint32_t message_length)
+{
+  if (message_length < 128) return REGULAR;
+  if (message_length > 127 && message_length < 16384) return MEDIUM;
+  if (message_length > 16383 && message_length < MAXIMUM_PAYLOAD) return HIGH;
+
+  assert (0 /* SHOULD NOT REACH HERE */);
+  return INVALID;
 }
-*/
 
 
 class MQTTHeaderHelper
@@ -86,8 +91,8 @@ public:
   bool retain_flag() const noexcept;
   void retain_flag(bool value) noexcept;
 
-  MQTTQoS qos_value() const noexcept;
-  void qos_value(MQTTQoS value) noexcept;
+  MQTTQoS qos_level() const noexcept;
+  void qos_level(MQTTQoS value) noexcept;
 
   bool dup_flag() const noexcept;
   void dup_flag(bool value) noexcept;
@@ -97,6 +102,10 @@ public:
 
   uint32_t message_length() const noexcept;
   void message_length(uint32_t length) noexcept;
+
+#ifdef NDEBUG
+  void print_header();
+#endif
 
 private:
   MQTTPacketHeaderBase& pkt_header_;
