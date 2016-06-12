@@ -111,6 +111,14 @@ private:
   MQTTPacketHeaderBase& pkt_header_;
 };
 
+namespace connect_args
+{
+}; // end namespace connect args
+
+class MQTTConnectMessage
+{
+};
+
 }
 
 #endif
